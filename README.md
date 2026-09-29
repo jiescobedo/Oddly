@@ -1,6 +1,6 @@
 # Oddly: NBA Win Probability Predictor
 
-Oddly predicts the probability that an NBA team wins a game using only box-score history. It pulls six seasons of team game logs, engineers features that capture team strength and situation (ELO ratings, rest, momentum, home court), and trains models that are validated **chronologically** so the results are not inflated by looking into the future.
+Oddly predicts the probability that an NBA team wins a game using only box score history. It starts by pullling six seasons of team game logs, then engineers features that capture team strength and situation (ELO ratings, rest, momentum, home court), and trains models that are validated **chronologically** so the results are not inflated by looking into the future.
 
 **Final model:** Logistic Regression on 20 engineered features.
 **Result:** **64.2%** mean accuracy across 5 time-based cross-validation folds (**66.1%** on the most recent held-out 20% of games).
@@ -13,8 +13,9 @@ Oddly predicts the probability that an NBA team wins a game using only box-score
 | Random Forest | 65.9% | 0.626 | 63.6% |
 | Gradient Boosting | 65.9% | 0.620 | n/a |
 
-Holdout = the most recent 20% of games (2,826 games), never seen in training. Coin-flip baseline is 50%.
+Holdout = the most recent 20% of games (2,826 games), never seen before in training. Coin-flip baseline is 50%.
 
+I engineered t folds across NBA seasons to not repeat a fold on the same data. 
 Logistic Regression beat Random Forest on all 5 CV folds (63.3 / 63.8 / 61.8 / 65.3 / 66.8 vs 62.7 / 63.7 / 61.0 / 64.5 / 65.9).
 
 ![Model comparison](images/model_comparison.png)
@@ -26,7 +27,7 @@ Logistic Regression beat Random Forest on all 5 CV folds (63.3 / 63.8 / 61.8 / 6
 |---|---|---|
 | 1 | Baseline: Logistic Regression, 15 rolling-stat features | 60.9% |
 | 2 | Switched to Random Forest | 61.7% |
-| 3 | Added ELO, back-to-back flag, season win rate (ELO had a bug, see below) | 62.0% |
+| 3 | Added ELO, fixed back_to_back flag, season win rate (ELO had a bug, see below) | 62.0% |
 | 4 | Fixed ELO, added ELO difference and head-to-head record | 65.9% |
 | 5 | Re-trained Logistic Regression on the final features | 66.1% |
 
@@ -56,7 +57,7 @@ Every rolling feature uses `.shift(1)`, so a game's own result is never used to 
 predict_matchup('GSW', 'MIA')   # GSW at home vs MIA
 ```
 
-Prints each team's win probability, with the first team treated as the home team.
+This will print each team's win probability, with the first team in the parameter of the function to be treated as the home team.
 
 ## Repo structure
 
@@ -80,11 +81,11 @@ Then open `01_data_collection.ipynb` in Jupyter or Colab. If using Colab, upload
 
 ## Data
 
-Regular-season team game logs, 2019-20 through 2024-25 (14,118 team-game rows), from the NBA stats API via the `nba_api` library. Data quality was checked against known real records and scoring averages (for example, GSW 2021-22: 53-29, 111.0 PPG).
+Regular season team game logs, 2019-20 through 2024-25 (14,118 team-game rows), from the NBA stats API via the `nba_api` library. Data quality was checked against known real records and scoring averages (for example, GSW 2021-22: 53-29, 111.0 PPG). Addtionally I performed data cleaning by handling missing values, duplicates, and inconsistencies. 
 
 ## Limitations and next steps
 
-- Uses team-level box scores only: no injuries, lineups, travel, or betting lines, which is why accuracy tops out in the mid-60s.
+- Uses team level box scores only so this does not include injuries, lineups, travel, or betting lines, which is why accuracy tops out in the mid-60s. Vegas level prediction models average percentages of 65-70% but this is also because they actually include these types.
 - `predict_matchup` builds its input from each team's most recent game row, so ratings reflect the state entering that game rather than after it.
 - Next: add player availability, try ELO with margin-of-victory, and calibrate the probabilities.
 
