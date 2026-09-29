@@ -37,6 +37,7 @@ Logistic Regression beat Random Forest on all 5 CV folds (63.3 / 63.8 / 61.8 / 6
 - **ELO difference was the strongest predictor.** Win probability is fundamentally about the *gap* between two teams, and `ELO_DIFF` carried the most importance by a wide margin.
 - **I found and fixed a data-alignment bug.** My first ELO implementation attached ratings to the wrong rows (ELO values swung by hundreds of points in one game when the update size allows ~20). Rebuilding it so each rating is stored by `(game, team)`, and adding a sanity check that no team's ELO moves more than ~20 points in a single game, took holdout accuracy from 62.0% to 65.9%.
 - **Validation is chronological.** Random train/test splits leak future games into training. Every split here trains only on earlier games, and cross-validation uses `TimeSeriesSplit`.
+- Checked for overfitting, the Train accuracy (63.8%) actually came in below the test accuracy (66.1%) and the negative gap rules out the possibility of the model just memorizing the training data. 
 
 ## Features (20)
 
